@@ -46,6 +46,7 @@ import { SearchModule } from './search/search.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { CollectionsModule } from './collections/collections.module';
 import { ProfileModule } from './profile/profile.module';
+import { HelpModule } from './help/help.module';
 import { TasksModule } from './tasks/tasks.module';
 import { ConfigurationWizardModule } from './configuration-wizard/configuration-wizard.module';
 import { PortalModule } from '@angular/cdk/portal';
@@ -110,6 +111,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     HomeModule,
     LoginModule,
     ProfileModule,
+    HelpModule,
     SettingsModule,
     NavigationModule,
     ClientsModule,

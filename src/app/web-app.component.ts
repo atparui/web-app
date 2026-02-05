@@ -30,7 +30,6 @@ import { ThemeStorageService } from './shared/theme-picker/theme-storage.service
 import { AlertService } from './core/alert/alert.service';
 import { AuthenticationService } from './core/authentication/authentication.service';
 import { SettingsService } from './settings/settings.service';
-import { DocumentationLinksService } from 'app/shared/services/documentation-links.service';
 import { IdleTimeoutService } from './home/timeout-dialog/idle-timeout.service';
 import { SessionTimeoutDialogComponent } from './home/timeout-dialog/session-timeout-dialog.component';
 
@@ -130,8 +129,7 @@ export class WebAppComponent implements OnInit, OnDestroy {
     private themingService: ThemingService,
     private dateUtils: Dates,
     private idle: IdleTimeoutService,
-    private dialog: MatDialog,
-    private documentationLinks: DocumentationLinksService
+    private dialog: MatDialog
   ) {}
 
   @HostBinding('class') public cssClass: string;
@@ -274,7 +272,7 @@ export class WebAppComponent implements OnInit, OnDestroy {
   }
 
   help() {
-    this.documentationLinks.open('userManual');
+    this.router.navigate(['/help']);
   }
 
   // Monitor all keyboard events and excute keyboard shortcuts

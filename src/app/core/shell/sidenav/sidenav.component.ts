@@ -18,7 +18,6 @@ import { KeyboardShortcutsDialogComponent } from 'app/shared/keyboard-shortcuts-
 import { AuthenticationService } from '../../authentication/authentication.service';
 import { PopoverService } from '../../../configuration-wizard/popover/popover.service';
 import { ConfigurationWizardService } from '../../../configuration-wizard/configuration-wizard.service';
-import { DocumentationLinksService } from 'app/shared/services/documentation-links.service';
 
 /** Custom Imports */
 import { frequentActivities } from './frequent-activities';
@@ -51,6 +50,7 @@ import { catchError, finalize, of, take } from 'rxjs';
     MatDivider,
     MatNavList,
     MatListItem,
+    RouterLink,
     RouterLinkActive,
     MatIcon,
     MatLine
@@ -63,7 +63,6 @@ export class SidenavComponent implements OnInit, AfterViewInit {
   private settingsService = inject(SettingsService);
   private configurationWizardService = inject(ConfigurationWizardService);
   private popoverService = inject(PopoverService);
-  private documentationLinks = inject(DocumentationLinksService);
 
   /** True if sidenav is in collapsed state. */
   @Input() sidenavCollapsed: boolean;
@@ -124,10 +123,10 @@ export class SidenavComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Opens Mifos JIRA Wiki page.
+   * Navigates to the in-app help page.
    */
   help() {
-    this.documentationLinks.open('userManual');
+    this.router.navigate(['/help']);
   }
 
   /**

@@ -47,8 +47,7 @@ export const environment = {
   enableRememberMe: false,
   warningDialog: {
     title: 'Warning',
-    content:
-      'This system is for authorized use only. Unauthorized access will result in possible legal action. By accessing this system, you acknowledge that you are authorized to do so and that all data stored and processed here is confidential.',
+    content: '', // Disabled: legal notice popup on every login
     buttonText: 'Close'
   },
   defaultLanguage: loadedEnv['defaultLanguage'] || 'en-US',

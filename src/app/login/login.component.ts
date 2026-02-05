@@ -104,8 +104,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   twoFactorAuthenticationRequired = false;
   /** Subscription to alerts. */
   alert$: Subscription;
-  logoPath = 'assets/images/default_home.png';
-  logoPathDark = 'assets/images/white-mifos.png';
+  logoPath = 'assets/images/atpar_logo.jpg';
+  logoPathDark = 'assets/images/atpar_logo.jpg';
   /** Subscription to theme changes. */
   theme$: Subscription;
 

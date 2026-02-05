@@ -19,6 +19,7 @@ import { startWith, map } from 'rxjs/operators';
 /** Custom Imports. */
 import { activities } from './activities';
 import { WarningDialogComponent } from './warning-dialog/warning-dialog.component';
+import { environment } from '../../environments/environment';
 
 /** Custom Services */
 import { AuthenticationService } from '../core/authentication/authentication.service';
@@ -95,7 +96,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.username = credentials.username;
     this.tenant = this.tenantIdentifier();
     this.setFilteredActivities();
-    if (!this.authenticationService.hasDialogBeenShown()) {
+    if (
+      environment.warningDialog?.content &&
+      !this.authenticationService.hasDialogBeenShown()
+    ) {
       this.dialog.open(WarningDialogComponent);
       this.authenticationService.showDialog();
     }

@@ -49,7 +49,6 @@ import { MatIcon } from '@angular/material/icon';
 import { NotificationsTrayComponent as NotificationsTrayComponent_1 } from '../../../shared/notifications-tray/notifications-tray.component';
 import { ThemeToggleComponent } from '../../../shared/theme-toggle/theme-toggle.component';
 import { STANDALONE_SHARED_IMPORTS } from 'app/standalone-shared.module';
-import { DocumentationLinksService } from 'app/shared/services/documentation-links.service';
 
 /**
  * Toolbar component.
@@ -82,7 +81,6 @@ export class ToolbarComponent implements OnInit, AfterViewInit, AfterContentChec
   private configurationWizardService = inject(ConfigurationWizardService);
   private dialog = inject(MatDialog);
   private changeDetector = inject(ChangeDetectorRef);
-  private documentationLinks = inject(DocumentationLinksService);
 
   /* Reference of institution */
   @ViewChild('institution') institution: ElementRef<any>;
@@ -153,10 +151,10 @@ export class ToolbarComponent implements OnInit, AfterViewInit, AfterContentChec
   }
 
   /**
-   * Opens Mifos JIRA Wiki page.
+   * Navigates to the in-app help page.
    */
   help() {
-    this.documentationLinks.open('userManual');
+    this.router.navigate(['/help']);
   }
   /**
    * Popover function
