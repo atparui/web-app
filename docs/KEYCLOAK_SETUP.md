@@ -14,13 +14,15 @@ Set the following (e.g. in `window.env` or build-time env):
 Example `window.env` (in `index.html` or your env loader):
 
 ```javascript
+// API via console (same pattern as rms-web-app: https://console.atparui.com/services/fineract-provider/api/v1)
 window.env = {
   oidcServerEnabled: true,
   oidcBaseUrl: 'https://auth.atparui.com/realms/nbk-demo',
   oidcClientId: 'finos-web',
   oidcFrontUrl: 'https://finos.atparui.com',
   fineractPlatformTenantId: 'default',
-  fineractApiUrl: 'https://your-fineract-host/fineract-provider/api/v1'
+  fineractApiUrl: 'https://console.atparui.com',
+  apiProvider: '/services/fineract-provider/api'
 };
 ```
 
@@ -37,6 +39,14 @@ window.env = {
 3. User signs in at Keycloak and is redirected back to `https://finos.atparui.com/callback?code=...`.
 4. The app exchanges the code for tokens and stores the access token.
 5. All requests to the Fineract API include `Authorization: Bearer <token>` and `Fineract-Platform-TenantId`.
+
+## API via Console (same pattern as rms-web-app)
+
+Fineract is exposed through the **Console** at `https://console.atparui.com/services/fineract-provider/**` (same style as RMS at `https://console.atparui.com/services/rms-service/api`). The app must call the console for the API, not finos.atparui.com.
+
+- **Console** has a static route: `/services/fineract-provider/**` → Fineract backend (path rewritten to `/fineract-provider/**`). No Consul registration; Fineract is a static route under `/services/`.
+- **Finos Web App** default: `baseApiUrl` = `https://console.atparui.com`, `apiProvider` = `/services/fineract-provider/api`, so full API URL = `https://console.atparui.com/services/fineract-provider/api/v1`. Do **not** use `https://finos.atparui.com` for the API base.
+- The gateway requires JWT for `/services/**` and forwards the request to Fineract.
 
 ## Fineract backend
 

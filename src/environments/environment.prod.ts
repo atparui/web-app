@@ -22,16 +22,22 @@ export const environment = {
   // For connecting to others servers running elsewhere update the base API URL
   baseApiUrls:
     loadedEnv['fineractApiUrls'] ||
-    'https://sandbox.mifos.community,https://demo.mifos.community,https://localhost:8443,' + window.location.origin,
-  // For connecting to server running elsewhere set the base API URL
+    'https://sandbox.mifos.community,https://demo.mifos.community,https://localhost:8443,https://console.atparui.com',
+  // Base API URL: use console (like rms-web-app) so API goes via gateway at /services/fineract-provider/api/v1
   baseApiUrl:
-    loadedEnv['fineractApiUrl'] ||
-    (loadedEnv['fineractApiUrls']?.length > 0 ? loadedEnv['fineractApiUrls'].split(',')[0] : window.location.origin),
-  oauthServerUrl: loadedEnv['oauthServerUrl'] || loadedEnv['fineractApiUrl'] + loadedEnv['apiProvider'],
+    (loadedEnv['fineractApiUrl'] && loadedEnv['fineractApiUrl'].trim() !== '')
+      ? loadedEnv['fineractApiUrl']
+      : (loadedEnv['fineractApiUrls']?.length > 0 ? loadedEnv['fineractApiUrls'].split(',')[0] : 'https://console.atparui.com'),
+  oauthServerUrl:
+    loadedEnv['oauthServerUrl'] ||
+    (loadedEnv['fineractApiUrl'] && loadedEnv['fineractApiUrl'].trim() !== ''
+      ? loadedEnv['fineractApiUrl'] + (loadedEnv['apiProvider'] || '')
+      : ''),
   allowServerSwitch: loadedEnv.allowServerSwitch || 'true',
-  apiProvider: loadedEnv['apiProvider'] || '/fineract-provider/api',
+  // Via console: same pattern as rms-service — https://console.atparui.com/services/fineract-provider/api/v1
+  apiProvider: loadedEnv['apiProvider'] || '/services/fineract-provider/api',
   apiVersion: loadedEnv['apiVersion'] || '/v1',
-  apiActuator: loadedEnv.apiActuator || '/fineract-provider',
+  apiActuator: loadedEnv.apiActuator || '/services/fineract-provider',
   serverUrl: '',
   oauth: {
     enabled: loadedEnv.oauthServerEnabled === true,

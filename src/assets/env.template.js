@@ -9,7 +9,7 @@
 (function (window) {
   window['env'] = window['env'] || {};
 
-  // BackEnd Environment variables
+  // BackEnd Environment variables — via console (like rms-web-app): fineractApiUrl=https://console.atparui.com, apiProvider=/services/fineract-provider/api
   window['env']['fineractApiUrls'] = '$FINERACT_API_URLS';
 
   window['env']['fineractApiUrl'] = '$FINERACT_API_URL';

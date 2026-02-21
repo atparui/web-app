@@ -29,13 +29,15 @@ export const environment = {
     loadedEnv.fineractApiUrls ||
     'https://sandbox.mifos.community,https://demo.mifos.community,https://localhost:8443,' + window.location.origin,
   // For connecting to server running elsewhere set the base API URL
+  // Via console (like rms-web-app): https://console.atparui.com/services/fineract-provider/api/v1
   baseApiUrl:
-    loadedEnv.fineractApiUrl ||
-    (loadedEnv.fineractApiUrls?.length > 0 ? loadedEnv.fineractApiUrls.split(',')[0] : window.location.origin),
+    (loadedEnv.fineractApiUrl && loadedEnv.fineractApiUrl.trim() !== '')
+      ? loadedEnv.fineractApiUrl
+      : (loadedEnv.fineractApiUrls?.length > 0 ? loadedEnv.fineractApiUrls.split(',')[0] : 'https://console.atparui.com'),
   allowServerSwitch: loadedEnv.allowServerSwitch || 'true',
-  apiProvider: loadedEnv.apiProvider || '/fineract-provider/api',
+  apiProvider: loadedEnv.apiProvider || '/services/fineract-provider/api',
   apiVersion: loadedEnv.apiVersion || '/v1',
-  apiActuator: loadedEnv.apiActuator || '/fineract-provider',
+  apiActuator: loadedEnv.apiActuator || '/services/fineract-provider',
   serverUrl: '',
   /** Feature flag for Remember Me functionality */
   enableRememberMe: false,
