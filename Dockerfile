@@ -1,49 +1,41 @@
-###############
-### STAGE 1: Build app
-###############
-ARG BUILDER_IMAGE=node:24-alpine3.22
-ARG NGINX_IMAGE=nginx:1.29-alpine3.22-slim
+# ========================================
+# Stage 1: Build Angular (Finos Web App)
+# ========================================
+FROM node:20-alpine AS builder
+WORKDIR /app
 
-FROM $BUILDER_IMAGE AS builder
-ARG NPM_REGISTRY_URL=https://registry.npmjs.org/
-ARG BUILD_ENVIRONMENT_OPTIONS="--configuration production"
-ARG PUPPETEER_DOWNLOAD_HOST_ARG=https://storage.googleapis.com
-ARG PUPPETEER_CHROMIUM_REVISION_ARG=1011831
-ARG PUPPETEER_SKIP_DOWNLOAD_ARG
+# Copy package files and install dependencies
+COPY package.json package-lock.json* ./
+RUN npm ci --ignore-scripts && npm cache clean --force
 
-# Set the environment variable to increase Node.js memory limit
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+# Copy source and build
+COPY . .
+RUN npm run build
 
-RUN apk add --no-cache git
+# ========================================
+# Stage 2: Serve with nginx
+# ========================================
+FROM nginx:alpine
+WORKDIR /usr/share/nginx/html
 
-WORKDIR /usr/src/app
+# Remove default nginx static content
+RUN rm -rf /usr/share/nginx/html/*
 
-ENV PATH=/usr/src/app/node_modules/.bin:$PATH
+# Copy built app from builder (Angular output is dist/web-app by default)
+COPY --from=builder /app/dist/web-app /usr/share/nginx/html
 
-# Export Puppeteer env variables for installation with non-default registry.
-ENV PUPPETEER_DOWNLOAD_HOST=$PUPPETEER_DOWNLOAD_HOST_ARG
-ENV PUPPETEER_CHROMIUM_REVISION=$PUPPETEER_CHROMIUM_REVISION_ARG
-ENV PUPPETEER_SKIP_DOWNLOAD=$PUPPETEER_SKIP_DOWNLOAD_ARG
-
-COPY ./ /usr/src/app/
-
-RUN npm cache clear --force
-
-RUN npm config set fetch-retry-maxtimeout 120000
-RUN npm config set registry $NPM_REGISTRY_URL --location=global
-
-RUN npm ci
-
-RUN sh -c "ng build --output-path=/dist $BUILD_ENVIRONMENT_OPTIONS"
-
-###############
-### STAGE 2: Serve app with nginx ###
-###############
-FROM $NGINX_IMAGE
-
-COPY --from=builder /dist/browser /usr/share/nginx/html
+# Optional: use custom nginx config for SPA routing (base-href /web-app/ or /)
+RUN echo 'server { \
+    listen 80; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { try_files $uri $uri/ /index.html; } \
+    location /health { return 200 ok; add_header Content-Type text/plain; } \
+  }' > /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
-# When the container starts, replace the env.js with values from environment variables
-CMD ["/bin/sh",  "-c",  "envsubst < /usr/share/nginx/html/assets/env.template.js > /usr/share/nginx/html/assets/env.js && exec nginx -g 'daemon off;'"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget -q -O - http://localhost:80/ | grep -q . || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]
