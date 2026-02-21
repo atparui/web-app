@@ -216,19 +216,40 @@ export class AuthenticationService {
 
     return new Promise((resolve, reject) => {
       if (this.authMode === AuthMode.OIDC) {
-        const url = `${environment.OIDC.oidcApiUrl}authentication/userdetails`;
-        this.http.post<{ object: Credentials }>(url, { token: accessToken }).subscribe({
-          next: (response) => {
-            const credentials = response.object;
-            credentials.accessToken = accessToken;
-            this.onLoginSuccess(credentials);
-            resolve();
-          },
-          error: (error) => {
-            console.error('Failed to fetch user details:', error);
-            reject(error);
-          }
-        });
+        const issuer = environment.OIDC.oidcBaseUrl || '';
+        const useKeycloakUserInfo =
+          !environment.OIDC.oidcApiUrl ||
+          issuer.includes('atparui.com') ||
+          issuer.includes('keycloak');
+        if (useKeycloakUserInfo) {
+          this.oauthService.loadUserProfile().then(
+            (profile: object) => {
+              const credentials = this.buildCredentialsFromOidcProfile(profile, accessToken);
+              this.onLoginSuccess(credentials);
+              resolve();
+            },
+            (err) => {
+              const claims = this.oauthService.getIdentityClaims() as Record<string, unknown>;
+              const credentials = this.buildCredentialsFromOidcProfile(claims || {}, accessToken);
+              this.onLoginSuccess(credentials);
+              resolve();
+            }
+          );
+        } else {
+          const url = `${environment.OIDC.oidcApiUrl}authentication/userdetails`;
+          this.http.post<{ object: Credentials }>(url, { token: accessToken }).subscribe({
+            next: (response) => {
+              const credentials = response.object;
+              credentials.accessToken = accessToken;
+              this.onLoginSuccess(credentials);
+              resolve();
+            },
+            error: (error) => {
+              console.error('Failed to fetch user details:', error);
+              reject(error);
+            }
+          });
+        }
       } else if (this.authMode === AuthMode.OAuth2) {
         const headers = new HttpHeaders().set('Authorization', `Bearer ${accessToken}`);
         const url = `${environment.oauth.serverUrl}/userdetails`;
@@ -245,6 +266,30 @@ export class AuthenticationService {
         });
       }
     });
+  }
+
+  /**
+   * Builds minimal Credentials from OIDC profile/claims (e.g. Keycloak).
+   * Used when no separate userdetails API is configured.
+   */
+  private buildCredentialsFromOidcProfile(profile: Record<string, unknown>, accessToken: string): Credentials {
+    const username =
+      (profile['preferred_username'] as string) ||
+      (profile['sub'] as string) ||
+      (profile['email'] as string) ||
+      'user';
+    return {
+      username,
+      accessToken,
+      authenticated: true,
+      base64EncodedAuthenticationKey: undefined,
+      officeId: 0,
+      officeName: '',
+      permissions: [],
+      roles: [],
+      userId: 0,
+      shouldRenewPassword: false
+    };
   }
 
   /**

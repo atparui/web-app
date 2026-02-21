@@ -95,14 +95,24 @@ export const environment = {
 
   OIDC: {
     // Support legacy FINERACT_PLUGIN_OIDC_* variable names for backward compatibility
+    // Keycloak (auth.atparui.com, nbk-demo, finos-web client) when oidcServerEnabled=true
     oidcServerEnabled:
       loadedEnv.oidcServerEnabled === true ||
       loadedEnv.oidcServerEnabled === 'true' ||
       loadedEnv.FINERACT_PLUGIN_OIDC_ENABLED === 'true',
-    oidcBaseUrl: loadedEnv.oidcBaseUrl || loadedEnv.FINERACT_PLUGIN_OIDC_BASE_URL || '',
-    oidcClientId: loadedEnv.oidcClientId || loadedEnv.FINERACT_PLUGIN_OIDC_CLIENT_ID || '',
+    oidcBaseUrl:
+      loadedEnv.oidcBaseUrl ||
+      loadedEnv.FINERACT_PLUGIN_OIDC_BASE_URL ||
+      'https://auth.atparui.com/realms/nbk-demo',
+    oidcClientId:
+      loadedEnv.oidcClientId ||
+      loadedEnv.FINERACT_PLUGIN_OIDC_CLIENT_ID ||
+      'finos-web',
     oidcApiUrl: loadedEnv.oidcApiUrl || loadedEnv.FINERACT_PLUGIN_OIDC_API_URL || '',
-    oidcFrontUrl: loadedEnv.oidcFrontUrl || loadedEnv.FINERACT_PLUGIN_OIDC_FRONTEND_URL || ''
+    oidcFrontUrl:
+      loadedEnv.oidcFrontUrl ||
+      loadedEnv.FINERACT_PLUGIN_OIDC_FRONTEND_URL ||
+      (typeof window !== 'undefined' ? window.location.origin : '')
   }
 };
 

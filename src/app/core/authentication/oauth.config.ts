@@ -64,7 +64,9 @@ function getOIDCConfig(): AuthConfig {
     requireHttps: environment.production,
     showDebugInformation: !environment.production,
     sessionChecksEnabled: false,
-    clearHashAfterLogin: false
+    clearHashAfterLogin: false,
+    // Keycloak finos-web client requires PKCE S256
+    customQueryParams: { code_challenge_method: 'S256' }
   };
 }
 
