@@ -1,6 +1,6 @@
 # Keycloak (auth.atparui.com) Setup for Finos Web App
 
-This app can use **Keycloak** at `auth.atparui.com` (realm **nbk-demo**, client **finos-web**) for login. Users visiting the app are redirected to Keycloak to sign in and then back to the app with a token used for the Fineract API.
+This app uses **keycloak-js** (same idea as React’s Keycloak provider): Keycloak is initialized **before** Angular in `main.ts`. If the user is not logged in, the browser is redirected to `auth.atparui.com` immediately, so there is no blank screen and no reliance on Angular routing for the redirect.
 
 ## Enable Keycloak login
 
@@ -33,27 +33,27 @@ In **Keycloak Admin** (e.g. `https://auth.atparui.com/admin`), ensure:
 1. **Realm**: `nbk-demo` exists and is the realm used for this app.
 2. **Client**: Create or edit client **finos-web** in realm `nbk-demo`:
    - **Client ID**: `finos-web`
-   - **Client authentication**: ON (confidential client) if you use a client secret; for public SPA leave OFF and use PKCE only.
-   - **Valid redirect URIs**: add exactly:
-     - `https://finos.atparui.com/callback`
-     - `http://localhost:4200/callback` (if you run the app locally)
+   - **Client authentication**: OFF (public SPA with PKCE).
+   - **Valid redirect URIs**: add **the app root** (keycloak-js redirects here after login):
+     - `https://finos.atparui.com/`
+     - `https://finos.atparui.com` (optional; some servers require both)
+     - `http://localhost:4200/` (if you run the app locally)
    - **Web origins**: add `https://finos.atparui.com` (and `http://localhost:4200` for local).
-   - **Access type**: `public` (SPA with PKCE).
-3. Save the client so that login from `https://finos.atparui.com` redirects to Keycloak and back to `https://finos.atparui.com/callback`.
+3. Save the client so that login from `https://finos.atparui.com` redirects to Keycloak and back to `https://finos.atparui.com/`.
 
-## Redirect URI
+## Redirect URI (keycloak-js)
 
-- The app uses **redirect URI** `{oidcFrontUrl}/callback` (e.g. `https://finos.atparui.com/callback`).
-- This must be listed in the Keycloak client **finos-web** (Valid redirect URIs).
+- The app uses **redirect URI** = app root: `https://finos.atparui.com/` (so Keycloak redirects to `https://finos.atparui.com/?code=...`).
+- This **must** be listed in the Keycloak client **finos-web** under **Valid redirect URIs** (with trailing slash).
 - The app uses **PKCE** with **S256** for the authorization code flow.
 
 ## Flow
 
-1. User opens the app (e.g. `https://finos.atparui.com`) and goes to the login page.
-2. User clicks **Login** → app redirects to Keycloak (`auth.atparui.com`) with `client_id=finos-web` and PKCE.
-3. User signs in at Keycloak and is redirected back to `https://finos.atparui.com/callback?code=...`.
-4. The app exchanges the code for tokens and stores the access token.
-5. All requests to the Fineract API include `Authorization: Bearer <token>` and `Fineract-Platform-TenantId`.
+1. User opens the app (e.g. `https://finos.atparui.com` or `https://finos.atparui.com/#/`).
+2. **Before Angular loads**, `main.ts` runs keycloak-js `init({ onLoad: 'login-required' })`. If the user is not authenticated, the browser is **immediately** redirected to Keycloak (`auth.atparui.com`).
+3. User signs in at Keycloak and is redirected back to `https://finos.atparui.com/?code=...&state=...`.
+4. `main.ts` runs again; keycloak-js processes the callback, exchanges the code for tokens, and then Angular bootstraps.
+5. The app uses the Keycloak token for `Authorization: Bearer <token>` on all Fineract API requests.
 
 ## API via Console (same pattern as rms-web-app)
 

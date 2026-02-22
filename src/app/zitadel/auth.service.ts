@@ -12,6 +12,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { OAuthService } from 'angular-oauth2-oidc';
 
 import { environment } from '../../environments/environment';
+import { getKeycloakInstance, getKeycloakToken } from '../core/authentication/keycloak.bridge';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -21,6 +22,10 @@ export class AuthService {
   private api = environment.OIDC.oidcApiUrl;
 
   getAccessToken(): string | null {
+    const kcToken = getKeycloakToken();
+    if (kcToken) {
+      return kcToken;
+    }
     return this.oauthService.getAccessToken();
   }
 
@@ -153,6 +158,17 @@ export class AuthService {
   }
 
   async refreshToken(): Promise<void> {
+    const kc = getKeycloakInstance();
+    if (kc) {
+      try {
+        const refreshed = await kc.updateToken(30);
+        if (refreshed && kc.token) {
+          return;
+        }
+      } catch (e) {
+        throw e;
+      }
+    }
     try {
       await this.oauthService.refreshToken();
     } catch (error) {

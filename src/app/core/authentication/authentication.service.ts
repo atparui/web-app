@@ -28,6 +28,11 @@ import { environment } from '../../../environments/environment';
 import { LoginContext } from './login-context.model';
 import { Credentials } from './credentials.model';
 import { getOAuthConfig, getActiveAuthMode, AuthMode } from './oauth.config';
+import {
+  getKeycloakInstance,
+  isKeycloakAuthenticated,
+  getKeycloakToken
+} from './keycloak.bridge';
 
 /**
  * Authentication workflow.
@@ -83,7 +88,15 @@ export class AuthenticationService {
   constructor() {
     this.authMode = getActiveAuthMode();
 
-    if (this.authMode !== AuthMode.Basic) {
+    if (this.authMode === AuthMode.OIDC && getKeycloakInstance()) {
+      if (isKeycloakAuthenticated()) {
+        const token = getKeycloakToken();
+        if (token) {
+          this.authenticationInterceptor.setAuthorizationToken(token);
+          this.userLoggedIn$.next(true);
+        }
+      }
+    } else if (this.authMode !== AuthMode.Basic) {
       this.initializeOAuthService();
     }
 
@@ -177,10 +190,16 @@ export class AuthenticationService {
    * @returns {Observable<boolean>} True if authentication is successful.
    */
   login(loginContext?: LoginContext): Observable<boolean> {
+    const kc = getKeycloakInstance();
+    if (this.authMode === AuthMode.OIDC && kc) {
+      kc.login({ redirectUri: window.location.origin + '/' });
+      return of(true);
+    }
+
     this.alertService.alert({ type: 'Authentication Start', message: 'Please wait...' });
 
     if (this.authMode !== AuthMode.Basic) {
-      // OAuth2/OIDC: Redirect to authorization server with PKCE
+      // OAuth2: Redirect to authorization server with PKCE
       this.oauthService.initCodeFlow();
       return of(true);
     }
@@ -383,8 +402,9 @@ export class AuthenticationService {
     this.resetDialog();
     this.userLoggedIn$.next(false);
 
-    if (this.authMode === AuthMode.OIDC) {
-      // OIDC: Use library to handle logout (redirects to OIDC provider)
+    if (this.authMode === AuthMode.OIDC && getKeycloakInstance()) {
+      getKeycloakInstance()!.logout({ redirectUri: window.location.origin + '/#/login' });
+    } else if (this.authMode === AuthMode.OIDC) {
       this.oauthService.logOut();
     } else if (this.authMode === AuthMode.OAuth2) {
       // OAuth2 (Fineract): Clear library tokens and server session
@@ -419,6 +439,9 @@ export class AuthenticationService {
    * @returns {boolean} True if the user is authenticated.
    */
   isAuthenticated(): boolean {
+    if (this.authMode === AuthMode.OIDC && getKeycloakInstance()) {
+      return isKeycloakAuthenticated();
+    }
     if (this.authMode !== AuthMode.Basic) {
       return this.oauthService.hasValidAccessToken();
     }
