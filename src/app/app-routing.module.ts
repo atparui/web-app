@@ -13,14 +13,22 @@ import { Routes, RouterModule } from '@angular/router';
 // Not Found Component
 import { NotFoundComponent } from './not-found/not-found.component';
 import { CallbackComponent } from './zitadel/callback/callback.component';
+import { AuthenticationGuard } from './core/authentication/authentication.guard';
 
 /**
- * Fallback to this route when no prior route is matched.
+ * Root path (e.g. #/) must run AuthenticationGuard so OIDC can redirect to Keycloak.
+ * Placed before '**' so empty path is not caught by the not-found route.
  */
 const routes: Routes = [
   {
     path: 'callback',
     component: CallbackComponent
+  },
+  {
+    path: '',
+    pathMatch: 'full',
+    canActivate: [AuthenticationGuard],
+    loadChildren: () => import('./home/home.module').then((m) => m.HomeModule)
   },
   {
     path: '**',
