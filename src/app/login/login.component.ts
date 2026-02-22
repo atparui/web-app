@@ -48,6 +48,8 @@ import { STANDALONE_SHARED_IMPORTS } from 'app/standalone-shared.module';
 import { M3IconComponent } from '../shared/m3-ui/m3-icon/m3-icon.component';
 
 import { VersionService } from '../system/version.service';
+import { AuthenticationService } from '../core/authentication/authentication.service';
+import { AuthMode, getActiveAuthMode } from '../core/authentication/oauth.config';
 
 /**
  * Login component.
@@ -84,6 +86,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   private router = inject(Router);
 
   private versionService = inject(VersionService);
+  private authenticationService = inject(AuthenticationService);
 
   public environment = environment;
 
@@ -117,6 +120,12 @@ export class LoginComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.updateLogo();
     this.themeDarkEnabled = this.settingsService.themeDarkEnabled;
+
+    // When OIDC/Keycloak is enabled, redirect to Keycloak login immediately (no default login screen)
+    if (getActiveAuthMode() === AuthMode.OIDC && !this.authenticationService.isAuthenticated()) {
+      this.authenticationService.login().subscribe();
+      return;
+    }
     // Subscribe to theme changes
     this.theme$ = this.themingService.theme.subscribe((value: string) => {
       this.themeDarkEnabled = this.settingsService.themeDarkEnabled;

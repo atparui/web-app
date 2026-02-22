@@ -101,7 +101,8 @@ export const environment = {
     oidcServerEnabled:
       loadedEnv.oidcServerEnabled === true ||
       loadedEnv.oidcServerEnabled === 'true' ||
-      loadedEnv.FINERACT_PLUGIN_OIDC_ENABLED === 'true',
+      loadedEnv.FINERACT_PLUGIN_OIDC_ENABLED === 'true' ||
+      (typeof window !== 'undefined' && window.location?.hostname === 'finos.atparui.com'),
     oidcBaseUrl:
       loadedEnv.oidcBaseUrl ||
       loadedEnv.FINERACT_PLUGIN_OIDC_BASE_URL ||
