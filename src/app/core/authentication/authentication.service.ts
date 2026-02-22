@@ -223,7 +223,7 @@ export class AuthenticationService {
           issuer.includes('keycloak');
         if (useKeycloakUserInfo) {
           this.oauthService.loadUserProfile().then(
-            (profile: object) => {
+            (profile: Record<string, unknown>) => {
               const credentials = this.buildCredentialsFromOidcProfile(profile, accessToken);
               this.onLoginSuccess(credentials);
               resolve();
