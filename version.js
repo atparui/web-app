@@ -6,17 +6,25 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-const { gitDescribeSync } = require('git-describe');
 const { resolve, relative } = require('path');
 const { writeFileSync } = require('node:fs');
 const moment = require('moment');
 
-const gitInfo = gitDescribeSync({
-  dirtyMark: false,
-  dirtySemver: false
-});
+let version = moment().format('YYMMDD');
+let hash = 'unknown';
+let raw = 'no-git';
 
-gitInfo.version = moment().format('YYMMDD');
+try {
+  const { gitDescribeSync } = require('git-describe');
+  const gitInfo = gitDescribeSync({ dirtyMark: false, dirtySemver: false });
+  version = moment().format('YYMMDD');
+  hash = gitInfo.hash || hash;
+  raw = gitInfo.raw || raw;
+} catch (err) {
+  // No git (e.g. Docker build without .git) or not a repo: use env or defaults
+  hash = process.env.BUILD_NUMBER || process.env.GIT_COMMIT || process.env.GIT_SHA || 'docker';
+  raw = `docker-${hash}`;
+}
 
 const file = resolve(__dirname, '.', 'src', 'environments', '.env.ts');
 writeFileSync(
@@ -25,8 +33,8 @@ writeFileSync(
 /* tslint:disable */
 export default {
   'mifos_x': {
-    'version': '${gitInfo.version}',
-    'hash': '${gitInfo.hash}'
+    'version': '${version}',
+    'hash': '${hash}'
   },
   'allow_switching_backend_instance': true
 };
@@ -35,4 +43,4 @@ export default {
   { encoding: 'utf-8' }
 );
 
-console.log(`Wrote version info ${gitInfo.raw} to ${relative(resolve(__dirname, '..'), file)}`);
+console.log(`Wrote version info ${raw} to ${relative(resolve(__dirname, '..'), file)}`);
