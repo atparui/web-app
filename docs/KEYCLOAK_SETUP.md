@@ -26,6 +26,21 @@ window.env = {
 };
 ```
 
+## Keycloak realm and client (auth.atparui.com)
+
+In **Keycloak Admin** (e.g. `https://auth.atparui.com/admin`), ensure:
+
+1. **Realm**: `nbk-demo` exists and is the realm used for this app.
+2. **Client**: Create or edit client **finos-web** in realm `nbk-demo`:
+   - **Client ID**: `finos-web`
+   - **Client authentication**: ON (confidential client) if you use a client secret; for public SPA leave OFF and use PKCE only.
+   - **Valid redirect URIs**: add exactly:
+     - `https://finos.atparui.com/callback`
+     - `http://localhost:4200/callback` (if you run the app locally)
+   - **Web origins**: add `https://finos.atparui.com` (and `http://localhost:4200` for local).
+   - **Access type**: `public` (SPA with PKCE).
+3. Save the client so that login from `https://finos.atparui.com` redirects to Keycloak and back to `https://finos.atparui.com/callback`.
+
 ## Redirect URI
 
 - The app uses **redirect URI** `{oidcFrontUrl}/callback` (e.g. `https://finos.atparui.com/callback`).

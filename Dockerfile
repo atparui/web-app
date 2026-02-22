@@ -12,6 +12,9 @@ RUN npm ci --ignore-scripts && npm cache clean --force
 COPY . .
 RUN npm run build
 
+# Normalize output: Angular application builder may put assets in dist/web-app/browser
+RUN mkdir -p /out && (cp -r /app/dist/web-app/browser/. /out/ 2>/dev/null || cp -r /app/dist/web-app/. /out/)
+
 # ========================================
 # Stage 2: Serve with nginx
 # ========================================
@@ -21,10 +24,10 @@ WORKDIR /usr/share/nginx/html
 # Remove default nginx static content
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy built app from builder (Angular output is dist/web-app by default)
-COPY --from=builder /app/dist/web-app /usr/share/nginx/html
+# Copy built app (index.html at root)
+COPY --from=builder /out /usr/share/nginx/html
 
-# Optional: use custom nginx config for SPA routing (base-href /web-app/ or /)
+# Custom nginx config for SPA routing
 RUN echo 'server { \
     listen 80; \
     root /usr/share/nginx/html; \
@@ -33,9 +36,13 @@ RUN echo 'server { \
     location /health { return 200 ok; add_header Content-Type text/plain; } \
   }' > /etc/nginx/conf.d/default.conf
 
+# Runtime env injection for OIDC/Keycloak (auth.atparui.com) and API URL
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget -q -O - http://localhost:80/ | grep -q . || exit 1
 
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
