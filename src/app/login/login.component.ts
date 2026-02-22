@@ -203,8 +203,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   displayTenantSelector(): boolean {
-    // Hide tenant selector when OAuth2 is enabled (tenant is determined by OAuth server)
-    if (environment.oauth.enabled) {
+    // Hide tenant selector when OAuth2/OIDC is enabled (tenant from subdomain or OAuth server)
+    if (environment.oauth.enabled || environment.OIDC.oidcServerEnabled) {
       return false;
     }
     return environment.displayTenantSelector === 'false' ? false : true;

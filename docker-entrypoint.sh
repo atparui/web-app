@@ -7,6 +7,9 @@ mkdir -p "$(dirname "$ENV_JS")"
 
 # Defaults for atparui: Keycloak at auth.atparui.com, realm nbk-demo, client finos-web
 OIDC_ENABLED="${OIDC_SERVER_ENABLED:-true}"
+# When OIDC enabled, tenant from subdomain – hide tenant selector
+TENANT_SELECTOR_VAL="false"
+[ "$OIDC_ENABLED" != "true" ] && TENANT_SELECTOR_VAL="${DISPLAY_TENANT_SELECTOR:-true}"
 OIDC_BASE="${OIDC_BASE_URL:-https://auth.atparui.com/realms/nbk-demo}"
 OIDC_CLIENT="${OIDC_CLIENT_ID:-finos-web}"
 OIDC_FRONT="${OIDC_FRONT_URL:-https://finos.atparui.com}"
@@ -32,7 +35,7 @@ cat > "$ENV_JS" << ENVJS
   window["env"]["oidcFrontUrl"] = "${OIDC_FRONT}";
   window["env"]["allowServerSwitch"] = "true";
   window["env"]["displayBackEndInfo"] = "true";
-  window["env"]["displayTenantSelector"] = "true";
+  window["env"]["displayTenantSelector"] = "${TENANT_SELECTOR_VAL}";
 })(this);
 ENVJS
 

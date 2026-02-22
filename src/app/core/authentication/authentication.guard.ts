@@ -13,12 +13,14 @@ import { Router } from '@angular/router';
 /** Custom Services */
 import { Logger } from '../logger/logger.service';
 import { AuthenticationService } from './authentication.service';
+import { AuthMode, getActiveAuthMode } from './oauth.config';
 
 /** Initialize logger */
 const log = new Logger('AuthenticationGuard');
 
 /**
  * Route access authorization.
+ * When OIDC/Keycloak is enabled, redirects to auth.atparui.com (Keycloak) instead of showing the app login page.
  */
 @Injectable()
 export class AuthenticationGuard {
@@ -26,13 +28,19 @@ export class AuthenticationGuard {
   private authenticationService = inject(AuthenticationService);
 
   /**
-   * Ensures route access is authorized only when user is authenticated, otherwise redirects to login.
+   * Ensures route access is authorized. When OIDC is enabled, redirects to Keycloak (no app login screen).
    *
    * @returns {boolean} True if user is authenticated.
    */
   canActivate(): boolean {
     if (this.authenticationService.isAuthenticated()) {
       return true;
+    }
+
+    if (getActiveAuthMode() === AuthMode.OIDC) {
+      log.debug('OIDC enabled: redirecting to Keycloak (auth.atparui.com)...');
+      this.authenticationService.login().subscribe();
+      return false;
     }
 
     log.debug('User not authenticated, redirecting to login...');

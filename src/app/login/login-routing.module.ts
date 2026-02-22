@@ -13,11 +13,15 @@ import { Routes, RouterModule } from '@angular/router';
 /** Custom Components */
 import { LoginComponent } from './login.component';
 
+/** Guards: redirect to Keycloak when OIDC enabled so login page never shows */
+import { OidcRedirectGuard } from '../core/authentication/oidc-redirect.guard';
+
 /** Login Routes */
 const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent,
+    canActivate: [OidcRedirectGuard],
     data: { title: 'Login' }
   }
 ];
@@ -30,6 +34,6 @@ const routes: Routes = [
 @NgModule({
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
-  providers: []
+  providers: [OidcRedirectGuard]
 })
 export class LoginRoutingModule {}
